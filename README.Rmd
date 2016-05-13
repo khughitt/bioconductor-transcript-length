@@ -1,0 +1,283 @@
+---
+title: Querying transcript length using Bioconductor
+author: V. Keith Hughitt
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    number_sections: true
+  md_document:
+    variant: markdown_github
+---
+
+```{r knitr_settings, include=FALSE}                                                  
+library(knitr)
+opts_knit$set(progress=FALSE, verbose=TRUE)                                           
+opts_chunk$set(fig.width=1080/96,                                                     
+               fig.height=1080/96,                                                    
+               dpi=96)                                                                
+```
+
+<div style='font-size: 42px;'>Querying transcript length using Bioconductor</div>
+
+Overview
+========
+
+The goal of this analysis is to explore how Bioconductor handles transcript
+length. This is motivated by the realization that the functions which generate
+transcript database packages (e.g. `makeTxDbFromGFF`) result in different
+numbers for "transcript length" for intron-containing genes, compared with what
+is listed in the annotation TriTrypDB text files for the same gene.
+
+For example, currently, the transcript length that gets computed uses the
+gene/transcript boundaries  for
+[LmjF.02.0100](http://www.genedb.org/gene/LmjF.02.0100?actionName=%2FQuery%2FquickSearch&resultsSize=1&taxonNodeName=Root)
+which has the gene model:
+
+    TABLE: Gene Model
+    [Name]          [Type]  [Start] [End]   [Is Reversed]
+    LmjF.02.0100    exon    35740   36189   1
+    LmjF.02.0100    intron  35739   35739   1
+    LmjF.02.0100    exon    34455   35738   1
+    LmjF.02.0100    intron  34447   34454   1
+    LmjF.02.0100    exon    33424   34446   1
+
+
+The correct transcript length should be:
+
+    > (36189-35740+1) + (35738-34455+1) + (34446-33424+1)
+    [1] 2757
+
+Which is what is listed in the annotation txt file
+(TriTrypDB-9.0_LmajorFriedlinGene.txt). However, the TxDb generation logic does
+not account for introns and instead arrives at:
+
+    > 36189 - 33424 + 1
+    [1] 2766
+
+This is a result of using the   `useGenesAsTranscripts=TRUE` parameter in
+`makeTranscriptDbFromGFF()` (Bioconductor 3.0) or `gffTxName="gene"` parameter
+in  `makeTxDbFromGFF()` (Bioconductor 3.1) to avoid excluding ncRNAs which do
+not have an `mRNA` row in the source GFF files.
+
+**TriTrypDB-9.0_LmajorFriedlin_genes.gff**
+
+    LmjF.02 TriTrypDB   gene    33424   36189   .   -   .   ID=LmjF.02.0100;Name=LmjF.02.0100;description=hypothetical+protein%2C+conserved+%28pseudogene%29;size=2766;web_id=LmjF.02.0100;locus_tag=LmjF.02.0100;size=2766;Alias=LmjF2.0100,LmjF02.0100,LmjF.02.0100,LmjF02.0100:pseudogenic_transcript,LmjF.02.0100:pseudogenic.transcript,LmjF02.0100:pseudogenic_transcript:pep,LmjF.02.0100:pseudogenic.transcript:pep
+    LmjF.02 TriTrypDB   mRNA    33424   36189   .   -   .   ID=rna_LmjF.02.0100-1;Name=LmjF.02.0100-1;description=LmjF.02.0100-1;size=2766;Parent=LmjF.02.0100;Ontology_term=GO:0003676,GO:0008270;Dbxref=ApiDB:LmjF.02.0100,taxon:347515
+    LmjF.02 TriTrypDB   CDS 33424   34446   .   -   0   ID=cds_LmjF.02.0100-3;Name=cds;description=.;size=1023;Parent=rna_LmjF.02.0100-1
+    LmjF.02 TriTrypDB   CDS 34455   35738   .   -   0   ID=cds_LmjF.02.0100-2;Name=cds;description=.;size=1284;Parent=rna_LmjF.02.0100-1
+    LmjF.02 TriTrypDB   CDS 35740   36189   .   -   0   ID=cds_LmjF.02.0100-1;Name=cds;description=.;size=450;Parent=rna_LmjF.02.0100-1
+    LmjF.02 TriTrypDB   exon    35740   36189   .   -   .   ID=exon_LmjF.02.0100-1;Name=exon;description=exon;size=450;Parent=rna_LmjF.02.0100-1
+    LmjF.02 TriTrypDB   exon    34455   35738   .   -   .   ID=exon_LmjF.02.0100-2;Name=exon;description=exon;size=1284;Parent=rna_LmjF.02.0100-1
+    LmjF.02 TriTrypDB   exon    33424   34446   .   -   .   ID=exon_LmjF.02.0100-3;Name=exon;description=exon;size=1023;Parent=rna_LmjF.02.0100-1
+
+*L. major* genes that are likely affected (i.e. contain introns):
+
+```{r lmajor_genes_with_introns}
+library("rtracklayer")
+
+# load gff
+lmajor_gff_filepath = file.path(Sys.getenv('REF'), 'lmajor_friedlin', 
+                                'annotation', 'TriTrypDB-27_LmajorFriedlin.gff')
+lmajor_gff = import.gff3(lmajor_gff_filepath)
+
+# get exons
+lmajor_exons = lmajor_gff[lmajor_gff$type == 'exon']
+
+# find genes with more than one exon
+multiexons = substring(lmajor_exons[grepl('-2$', lmajor_exons$ID)]$ID, 6, 17)
+print(multiexons)
+```
+
+*T. cruzi* genes that are likely affected (i.e. contain introns):
+
+```{r tcruzi_genes_with_introns}
+# load gff
+tcruzi_gff_filepath = file.path(Sys.getenv('REF'), 'tcruzi_clbrener_esmeraldo-like/annotation', 
+                                'TriTrypDB-27_TcruziCLBrenerEsmeraldo-like.gff')
+tcruzi_gff = import.gff3(tcruzi_gff_filepath)
+
+# get exons
+tcruzi_exons = tcruzi_gff[tcruzi_gff$type == 'exon']
+
+# find genes with more than one exon
+multiexons = substring(tcruzi_exons[grepl('-2$', tcruzi_exons$ID)]$ID, 6)
+print(multiexons)
+```
+
+Finally, it appears that what goseq calls "gene length" is the median of all 
+transcripts for a gene. From the goseq vignette:
+
+> Once you have a transcriptDb object, you can get a vector named by gene ID
+> containing the median transcript length of each gene simply by using the
+> command.
+>
+> > txsByGene=transcriptsBy(txdb,"gene")
+>
+> > lengthData=median(width(txsByGene))
+
+Methods
+=======
+
+L. major
+--------
+
+First, let's look at what information is available for the generated *L. major*
+transcript databases.
+
+**Note 2015/02/21**:
+
+Tested both Bioconductor 3.0 and 3.1 (devel), using either the default
+arguments for `makeTranscriptDbFromGFF` / `makeTxDbFromGFF`, or by specifying
+either 'gffTxName="gene"' or 'useGenesAsTranscripts=TRUE'.
+
+- The ideal combination is to use Bioconductor 3.1 with the gffTxName=gene
+  specified.
+- This results both in the transcripts being properly populated from multi-exon
+  genes, and noncoding RNAs being parsed. The downside is that R-devel must be
+  used and many basic packages such as rmarkdown are not yet available.
+  (See note below though...)
+- When using Bioconductor 3.0, the `useGenesAsTranscripts` switch should be
+  enabled to include ncRNAs, however, no settings tested will result in
+  multi-exon genes being properly handled.
+
+NOTE 2015/02/21 -- Previously it was possible to use bioc-devel to produce
+transcript databases with the CDSSTART and CDSEND fields properly populated,
+which could be used to determine the processed mRNA length. Currently, however,
+I am unable to reproduce this and can only get the TX values.
+
+
+### Coding RNA
+
+```{r lmajor, warning=FALSE}
+library(Leishmania.major.Friedlin)
+orgdb = Leishmania.major.Friedlin
+
+# total number of genes in database
+length(keys(TxDb.LmajorFriedlin.tritryp27.genes))
+
+# L. major gene with introns
+gene_id = 'LmjF.02.0100'
+
+# transcript boundaries
+select(orgdb, keys=c(gene_id), keytype='GID', columns=c('TXSTART', 'TXEND'))
+
+# CDS boundaries
+select(orgdb, keys=c(gene_id), keytype='GID', columns=c('CDSSTART', 'CDSEND'))
+
+# Exon boundaries
+select(orgdb, keys=c(gene_id), keytype='GID', columns=c('EXONSTART', 'EXONEND'))
+
+# Transcript length excluding introns
+# @TODO: Note that only in Bioconductor devel does the generated transcript
+# database include proper TXSTART and TXEND entries; for the current stable
+# (bioc 3.0) these fields appear as NAs.
+```
+
+### Non-coding RNA
+
+Only TXSTART and TXEND are defined (not CDSSTART/CDSEND).
+
+```{r lmajor_ncrna, warning=FALSE}
+# transcript boundaries
+gene_id = 'LmjF.02.ncRNA1'
+
+select(orgdb, keys=c(gene_id), keytype='GID', columns=c('TXSTART', 'TXEND'))
+
+# CDS boundaries
+select(orgdb, keys=c(gene_id), keytype='GID', columns=c('CDSSTART', 'CDSEND'))
+```
+
+Human
+-----
+
+To ensure that the transcript lengths computed match what is expected by
+`goseq`, let's also compare the approach to the numbers in the gene length
+database used by goseq for a human gene.
+
+As an example, we will look at the [HOXA10 gene](http://uswest.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=ENSG00000253293;r=7:27170591-27180261)
+which six known transcripts including [HOXA10-001](http://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;g=ENSG00000253293;r=7:27170591-27180261;t=ENST00000283921),
+which has two exons and is 2541bp long.
+
+```{r human_genelendb, warning=FALSE}
+library("Homo.sapiens")
+library("geneLenDataBase")
+library("GenomeGraphs")
+
+# Load BioMart (used to draw transcript isoforms)
+mart = useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+
+# target gene (HOXA10) GRCh38 identifiers
+gene_id = 'ENSG00000253293'
+tx_id   = 'ENST00000283921'
+
+# GRCh37 (hg19) identifiers
+gene_id_old = 'ENSG00000153807'
+
+# Plot HOXA10 transcripts
+gene = makeGene(id=gene_id, type="ensembl_gene_id", biomart=mart)
+transcript = makeTranscript(id=gene_id, type="ensembl_gene_id", biomart=mart,
+                            dp=DisplayPars(plotId=TRUE, cex=0.5))
+gdPlot(list('Gene'=gene, 'Transcripts'=transcript))
+
+# Query all transcripts from gene length database
+data(hg19.ensGene.LENGTH)
+hg19.ensGene.LENGTH[hg19.ensGene.LENGTH$Gene == gene_id_old,]
+
+# HXA10-001
+# The length listed here is 2572, which differs from what is listed on the 
+# Ensembl website...
+hg19.ensGene.LENGTH[hg19.ensGene.LENGTH$Transcript == tx_id,]
+```
+
+#### Gene
+
+```{r human_genelevel, warning=FALSE}
+# Coordinates from Homo.sapiens database
+orgdb = Homo.sapiens
+
+tx = select(orgdb, keys=c(gene_id), keytype='ENSEMBL',
+       columns=c('TXSTART', 'TXEND'))
+print(tx)
+
+# CDS boundaries
+select(orgdb, keys=c(gene_id), keytype='ENSEMBL',
+       columns=c('CDSSTART', 'CDSEND'))
+
+# Exon boundaries
+select(orgdb, keys=c(gene_id), keytype='ENSEMBL',
+       columns=c('EXONSTART', 'EXONEND'))
+
+# Median transcript length
+lengths = c()
+for (i in 1:nrow(tx)) {
+    lengths = append(lengths, abs(tx[i,]$TXEND - tx[i,]$TXSTART) + 1)
+}
+print(sprintf("Median transcript length: %01f", median(lengths)))
+```
+
+#### Transcript
+
+```{r human_transcriptlevel, warning=FALSE}
+
+# Using transcript ID to query
+select(orgdb, keys=c(tx_id), keytype='ENSEMBLTRANS',
+       columns=c('TXSTART', 'TXEND'))
+
+# CDS boundaries
+select(orgdb, keys=c(tx_id), keytype='ENSEMBLTRANS',
+       columns=c('CDSSTART', 'CDSEND'))
+
+# Exon boundaries
+select(orgdb, keys=c(tx_id), keytype='ENSEMBLTRANS',
+       columns=c('EXONSTART', 'EXONEND'))
+
+```
+
+System Info
+-----------
+
+```{r sysinfo}
+sessionInfo()
+```
