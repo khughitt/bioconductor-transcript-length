@@ -79,7 +79,7 @@ library("rtracklayer")
 
 # load gff
 lmajor_gff_filepath = file.path(Sys.getenv('REF'), 'lmajor_friedlin', 
-                                'annotation', 'TriTrypDB-27_LmajorFriedlin.gff')
+                                'annotation', 'TriTrypDB-32_LmajorFriedlin.gff')
 lmajor_gff = import.gff3(lmajor_gff_filepath)
 
 # get exons
@@ -95,7 +95,7 @@ print(multiexons)
 ```{r tcruzi_genes_with_introns}
 # load gff
 tcruzi_gff_filepath = file.path(Sys.getenv('REF'), 'tcruzi_clbrener_esmeraldo-like/annotation', 
-                                'TriTrypDB-27_TcruziCLBrenerEsmeraldo-like.gff')
+                                'TriTrypDB-32_TcruziCLBrenerEsmeraldo-like.gff')
 tcruzi_gff = import.gff3(tcruzi_gff_filepath)
 
 # get exons
@@ -155,7 +155,7 @@ library(Leishmania.major.Friedlin)
 orgdb = Leishmania.major.Friedlin
 
 # total number of genes in database
-length(keys(TxDb.LmajorFriedlin.tritryp27.genes))
+length(keys(TxDb.LmajorFriedlin.tritryp32.genes))
 
 # L. major gene with introns
 gene_id = 'LmjF.02.0100'
