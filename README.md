@@ -42,10 +42,56 @@ This is a result of using the `useGenesAsTranscripts=TRUE` parameter in `makeTra
 
 ``` r
 library("rtracklayer")
+```
 
+    ## Loading required package: GenomicRanges
+
+    ## Loading required package: stats4
+
+    ## Loading required package: BiocGenerics
+
+    ## Loading required package: parallel
+
+    ## 
+    ## Attaching package: 'BiocGenerics'
+
+    ## The following objects are masked from 'package:parallel':
+    ## 
+    ##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    ##     clusterExport, clusterMap, parApply, parCapply, parLapply,
+    ##     parLapplyLB, parRapply, parSapply, parSapplyLB
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     IQR, mad, sd, var, xtabs
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     anyDuplicated, append, as.data.frame, cbind, colMeans,
+    ##     colnames, colSums, do.call, duplicated, eval, evalq, Filter,
+    ##     Find, get, grep, grepl, intersect, is.unsorted, lapply,
+    ##     lengths, Map, mapply, match, mget, order, paste, pmax,
+    ##     pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce,
+    ##     rowMeans, rownames, rowSums, sapply, setdiff, sort, table,
+    ##     tapply, union, unique, unsplit, which, which.max, which.min
+
+    ## Loading required package: S4Vectors
+
+    ## 
+    ## Attaching package: 'S4Vectors'
+
+    ## The following object is masked from 'package:base':
+    ## 
+    ##     expand.grid
+
+    ## Loading required package: IRanges
+
+    ## Loading required package: GenomeInfoDb
+
+``` r
 # load gff
 lmajor_gff_filepath = file.path(Sys.getenv('REF'), 'lmajor_friedlin', 
-                                'annotation', 'TriTrypDB-27_LmajorFriedlin.gff')
+                                'annotation', 'TriTrypDB-32_LmajorFriedlin.gff')
 lmajor_gff = import.gff3(lmajor_gff_filepath)
 
 # get exons
@@ -56,27 +102,14 @@ multiexons = substring(lmajor_exons[grepl('-2$', lmajor_exons$ID)]$ID, 6, 17)
 print(multiexons)
 ```
 
-    ##  [1] "LmjF.02.0100" "LmjF.02.0440" "LmjF.03.0290" "LmjF.04.1165"
-    ##  [5] "LmjF.05.1160" "LmjF.06.0400" "LmjF.07.0340" "LmjF.07.0745"
-    ##  [9] "LmjF.07.1105" "LmjF.08.0135" "LmjF.08.0795" "LmjF.08.0805"
-    ## [13] "LmjF.10.0350" "LmjF.10.1081" "LmjF.11.0570" "LmjF.11.1230"
-    ## [17] "LmjF.11.1260" "LmjF.14.0020" "LmjF.14.0870" "LmjF.15.0440"
-    ## [21] "LmjF.16.1385" "LmjF.17.0180" "LmjF.21.0791" "LmjF.22.0130"
-    ## [25] "LmjF.22.0340" "LmjF.22.1680" "LmjF.23.0410" "LmjF.23.0845"
-    ## [29] "LmjF.23.0910" "LmjF.23.1405" "LmjF.25.1230" "LmjF.25.2380"
-    ## [33] "LmjF.26.0450" "LmjF.26.0520" "LmjF.26.2495" "LmjF.27.1245"
-    ## [37] "LmjF.27.1710" "LmjF.28.1165" "LmjF.28.2965" "LmjF.29.1080"
-    ## [41] "LmjF.29.2600" "LmjF.30.0190" "LmjF.30.2500" "LmjF.31.1440"
-    ## [45] "LmjF.31.2195" "LmjF.31.3035" "LmjF.33.0115" "LmjF.33.2905"
-    ## [49] "LmjF.33.3110" "LmjF.35.0015" "LmjF.35.2725" "LmjF.36.0325"
-    ## [53] "LmjF.36.1395" "LmjF.36.5595" "LmjF.36.6785"
+    ## character(0)
 
 *T. cruzi* genes that are likely affected (i.e. contain introns):
 
 ``` r
 # load gff
 tcruzi_gff_filepath = file.path(Sys.getenv('REF'), 'tcruzi_clbrener_esmeraldo-like/annotation', 
-                                'TriTrypDB-27_TcruziCLBrenerEsmeraldo-like.gff')
+                                'TriTrypDB-32_TcruziCLBrenerEsmeraldo-like.gff')
 tcruzi_gff = import.gff3(tcruzi_gff_filepath)
 
 # get exons
@@ -87,8 +120,7 @@ multiexons = substring(tcruzi_exons[grepl('-2$', tcruzi_exons$ID)]$ID, 6)
 print(multiexons)
 ```
 
-    ## [1] "TcCLB.506677.39-2"  "TcCLB.508347.159-2" "TcCLB.508973.50-2" 
-    ## [4] "TcCLB.511537.8-2"
+    ## character(0)
 
 Finally, it appears that what goseq calls "gene length" is the median of all transcripts for a gene. From the goseq vignette:
 
@@ -120,13 +152,40 @@ NOTE 2015/02/21 -- Previously it was possible to use bioc-devel to produce trans
 
 ``` r
 library(Leishmania.major.Friedlin)
+```
+
+    ## Loading required package: AnnotationDbi
+
+    ## Loading required package: Biobase
+
+    ## Welcome to Bioconductor
+    ## 
+    ##     Vignettes contain introductory material; view with
+    ##     'browseVignettes()'. To cite Bioconductor, see
+    ##     'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+    ## Loading required package: OrganismDbi
+
+    ## Loading required package: GenomicFeatures
+
+    ## Loading required package: GO.db
+
+    ## 
+
+    ## Loading required package: org.LmjF.tritryp.db
+
+    ## 
+
+    ## Loading required package: TxDb.LmajorFriedlin.tritryp32.genes
+
+``` r
 orgdb = Leishmania.major.Friedlin
 
 # total number of genes in database
-length(keys(TxDb.LmajorFriedlin.tritryp27.genes))
+length(keys(TxDb.LmajorFriedlin.tritryp32.genes))
 ```
 
-    ## [1] 9377
+    ## [1] 9378
 
 ``` r
 # L. major gene with introns
@@ -185,8 +244,8 @@ select(orgdb, keys=c(gene_id), keytype='GID', columns=c('TXSTART', 'TXEND'))
 
     ## 'select()' returned 1:1 mapping between keys and columns
 
-    ##              GID TXSTART  TXEND
-    ## 1 LmjF.02.ncRNA1  190625 191602
+    ##              GID TXSTART TXEND
+    ## 1 LmjF.02.ncRNA1      NA    NA
 
 ``` r
 # CDS boundaries
@@ -207,9 +266,24 @@ As an example, we will look at the [HOXA10 gene](http://uswest.ensembl.org/Homo_
 
 ``` r
 library("Homo.sapiens")
+```
+
+    ## Loading required package: org.Hs.eg.db
+
+    ## 
+
+    ## Loading required package: TxDb.Hsapiens.UCSC.hg19.knownGene
+
+``` r
 library("geneLenDataBase")
 library("GenomeGraphs")
+```
 
+    ## Loading required package: biomaRt
+
+    ## Loading required package: grid
+
+``` r
 # Load BioMart (used to draw transcript isoforms)
 mart = useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl")
 
@@ -353,9 +427,13 @@ System Info
 sessionInfo()
 ```
 
-    ## R version 3.2.4 Revised (2016-03-16 r70336)
+    ## R version 3.4.2 (2017-09-28)
     ## Platform: x86_64-pc-linux-gnu (64-bit)
     ## Running under: Arch Linux
+    ## 
+    ## Matrix products: default
+    ## BLAS: /usr/lib/libblas.so.3.7.1
+    ## LAPACK: /usr/lib/liblapack.so.3.7.1
     ## 
     ## locale:
     ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
@@ -366,49 +444,55 @@ sessionInfo()
     ## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
     ## 
     ## attached base packages:
-    ##  [1] grid      stats4    parallel  stats     graphics  grDevices utils    
+    ##  [1] grid      parallel  stats4    stats     graphics  grDevices utils    
     ##  [8] datasets  methods   base     
     ## 
     ## other attached packages:
-    ##  [1] GenomeGraphs_1.30.0                     
-    ##  [2] biomaRt_2.26.1                          
-    ##  [3] geneLenDataBase_1.6.0                   
+    ##  [1] GenomeGraphs_1.38.0                     
+    ##  [2] biomaRt_2.34.0                          
+    ##  [3] geneLenDataBase_1.14.0                  
     ##  [4] Homo.sapiens_1.3.1                      
     ##  [5] TxDb.Hsapiens.UCSC.hg19.knownGene_3.2.2 
-    ##  [6] org.Hs.eg.db_3.2.3                      
-    ##  [7] Leishmania.major.Friedlin_27.0          
-    ##  [8] TxDb.LmajorFriedlin.tritryp27.genes_27.0
-    ##  [9] org.LmjF.tritryp.db_27.0                
-    ## [10] GO.db_3.2.2                             
-    ## [11] RSQLite_1.0.0                           
-    ## [12] DBI_0.4-1                               
-    ## [13] OrganismDbi_1.12.1                      
-    ## [14] GenomicFeatures_1.22.13                 
-    ## [15] AnnotationDbi_1.32.3                    
-    ## [16] Biobase_2.30.0                          
-    ## [17] rmarkdown_0.9.6.4                       
-    ## [18] rtracklayer_1.30.4                      
-    ## [19] GenomicRanges_1.22.4                    
-    ## [20] GenomeInfoDb_1.6.3                      
-    ## [21] IRanges_2.4.8                           
-    ## [22] S4Vectors_0.8.11                        
-    ## [23] BiocGenerics_0.16.1                     
-    ## [24] knitr_1.13                              
-    ## [25] nvimcom_0.9-16                          
-    ## [26] setwidth_1.0-4                          
-    ## [27] colorout_1.1-0                          
+    ##  [6] org.Hs.eg.db_3.4.2                      
+    ##  [7] Leishmania.major.Friedlin_32.0          
+    ##  [8] TxDb.LmajorFriedlin.tritryp32.genes_32.0
+    ##  [9] org.LmjF.tritryp.db_32.0                
+    ## [10] GO.db_3.4.2                             
+    ## [11] OrganismDbi_1.20.0                      
+    ## [12] GenomicFeatures_1.30.0                  
+    ## [13] AnnotationDbi_1.40.0                    
+    ## [14] Biobase_2.38.0                          
+    ## [15] rtracklayer_1.38.0                      
+    ## [16] GenomicRanges_1.30.0                    
+    ## [17] GenomeInfoDb_1.14.0                     
+    ## [18] IRanges_2.12.0                          
+    ## [19] S4Vectors_0.16.0                        
+    ## [20] BiocGenerics_0.24.0                     
+    ## [21] knitr_1.17                              
+    ## [22] rmarkdown_1.6                           
+    ## [23] nvimcom_0.9-40                          
+    ## [24] colorout_1.1-3                          
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.4                BiocInstaller_1.20.2      
-    ##  [3] formatR_1.4                futile.logger_1.4.1       
-    ##  [5] XVector_0.10.0             bitops_1.0-6              
-    ##  [7] futile.options_1.0.0       tools_3.2.4               
-    ##  [9] zlibbioc_1.16.0            digest_0.6.9              
-    ## [11] evaluate_0.9               graph_1.48.0              
-    ## [13] yaml_2.1.13                stringr_1.0.0             
-    ## [15] Biostrings_2.38.4          XML_3.98-1.4              
-    ## [17] RBGL_1.46.0                BiocParallel_1.4.3        
-    ## [19] lambda.r_1.1.7             magrittr_1.5              
-    ## [21] Rsamtools_1.22.0           htmltools_0.3.5           
-    ## [23] GenomicAlignments_1.6.3    SummarizedExperiment_1.0.2
-    ## [25] stringi_1.0-1              RCurl_1.95-4.8
+    ##  [1] SummarizedExperiment_1.8.0 progress_1.1.2            
+    ##  [3] lattice_0.20-35            htmltools_0.3.6           
+    ##  [5] yaml_2.1.14                blob_1.1.0                
+    ##  [7] XML_3.98-1.9               RBGL_1.54.0               
+    ##  [9] rlang_0.1.2                DBI_0.7                   
+    ## [11] BiocParallel_1.12.0        bit64_0.9-7               
+    ## [13] matrixStats_0.52.2         GenomeInfoDbData_0.99.1   
+    ## [15] stringr_1.2.0              zlibbioc_1.24.0           
+    ## [17] Biostrings_2.46.0          evaluate_0.10.1           
+    ## [19] memoise_1.1.0              BiocInstaller_1.28.0      
+    ## [21] Rcpp_0.12.13               backports_1.1.1           
+    ## [23] DelayedArray_0.4.0         graph_1.56.0              
+    ## [25] XVector_0.18.0             bit_1.1-12                
+    ## [27] Rsamtools_1.30.0           RMySQL_0.10.13            
+    ## [29] digest_0.6.12              stringi_1.1.5             
+    ## [31] rprojroot_1.2              tools_3.4.2               
+    ## [33] bitops_1.0-6               magrittr_1.5              
+    ## [35] RCurl_1.95-4.8             RSQLite_2.0               
+    ## [37] tibble_1.3.4               pkgconfig_2.0.1           
+    ## [39] Matrix_1.2-11              prettyunits_1.0.2         
+    ## [41] assertthat_0.2.0           R6_2.2.2                  
+    ## [43] GenomicAlignments_1.14.0   compiler_3.4.2
